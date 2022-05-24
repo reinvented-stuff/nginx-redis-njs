@@ -65,10 +65,10 @@ RUN mkdir -pv /var/log/nginx /etc/nginx/conf /etc/nginx/modules
 
 WORKDIR /
 
-COPY --from=builder /etc/nginx .
-COPY --from=builder /usr/sbin/nginx .
-COPY --from=builder /etc/nginx/conf .
-COPY --from=builder /etc/nginx/conf/nginx.conf .
+COPY --from=builder /etc/nginx /etc/nginx
+COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
+COPY --from=builder /etc/nginx/conf /etc/nginx/conf
+COPY --from=builder /etc/nginx/conf/nginx.conf /etc/nginx/conf/nginx.conf
 
 VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
 
