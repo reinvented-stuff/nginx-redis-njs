@@ -8,7 +8,7 @@ ARG NGINX_NJS_VERSION=0.7.3
 
 ENV NGINX_DOWNLOAD_URL="https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz"
 ENV NGINX_REDIS_DOWNLOAD_URL="https://people.freebsd.org/~osa/ngx_http_redis-${NGINX_REDIS_VERSION}.tar.gz"
-ENV NGINX_NJS_DOWNLOAD_URL="http://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
+ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
 
 RUN apk --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
 RUN mkdir -pv /src 
