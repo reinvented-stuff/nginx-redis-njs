@@ -65,7 +65,6 @@ WORKDIR /
 
 COPY --from=builder /etc/nginx .
 COPY --from=builder /usr/sbin/nginx .
-COPY --from=builder /etc/nginx/modules .
 COPY --from=builder /etc/nginx/conf .
 COPY --from=builder /etc/nginx/conf/nginx.conf .
 COPY --from=builder /etc/nginx/logs/nginx.pid .
