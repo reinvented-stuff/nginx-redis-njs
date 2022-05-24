@@ -63,14 +63,14 @@ ARG NGINX_EXPOSE=80 443
 
 WORKDIR /
 
-ADD /etc/nginx .
-ADD /usr/sbin/nginx .
-ADD /etc/nginx/modules .
-ADD /etc/nginx/conf .
-ADD /etc/nginx/conf/nginx.conf .
-ADD /etc/nginx/logs/nginx.pid .
-ADD /var/log/nginx/error.log .
-ADD /var/log/nginx/access.log .
+ADD --from=builder /etc/nginx .
+ADD --from=builder /usr/sbin/nginx .
+ADD --from=builder /etc/nginx/modules .
+ADD --from=builder /etc/nginx/conf .
+ADD --from=builder /etc/nginx/conf/nginx.conf .
+ADD --from=builder /etc/nginx/logs/nginx.pid .
+ADD --from=builder /var/log/nginx/error.log .
+ADD --from=builder /var/log/nginx/access.log .
 
 VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
 
