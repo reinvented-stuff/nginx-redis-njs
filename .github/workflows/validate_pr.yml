@@ -1,8 +1,13 @@
+---
+# yamllint disable rule:line-length
+# yamllint disable rule:truthy
+
 name: Validate pull request to master
 
 on:
   pull_request:
-    branches: [ 'master' ]
+    branches:
+      - master
 
 jobs:
 
@@ -27,10 +32,10 @@ jobs:
       - name: Check if .version file exists
         id: version_file_exists
         run: |
-          if [[ -f .version ]]; then 
+          if [[ -f .version ]]; then
             echo "::set-output name=version_file_exists::true"
-          else 
-            echo "::set-output name=version_file_exists::false" 
+          else
+            echo "::set-output name=version_file_exists::false"
           fi
 
       - name: Read out .version file
@@ -50,7 +55,7 @@ jobs:
           OUTFILE=".tag_hash"
           curl -s -X GET -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' --url "${URL}" | jq .object.sha | tee "${OUTFILE}"
           echo "::set-output name=tag_hash::$(cat "${OUTFILE}")"
-      
+
       - name: Check if planned tag doesn't exist yet
         id: tag_exists
         if: steps.lookup_tag.outputs.tag_hash == 'null'
@@ -70,7 +75,7 @@ jobs:
 
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels/RELEASEABLE"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X DELETE \
@@ -81,7 +86,7 @@ jobs:
 
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X POST \
@@ -93,7 +98,7 @@ jobs:
 
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/comments"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X POST \
@@ -109,7 +114,7 @@ jobs:
         run: |
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels/UNRELEASEABLE"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X DELETE \
@@ -119,7 +124,7 @@ jobs:
 
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X POST \
@@ -133,7 +138,7 @@ jobs:
         run: |
           URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/comments"
           echo "URL: ${URL}"
-          
+
           curl \
           -s \
           -X POST \
@@ -142,3 +147,4 @@ jobs:
           --url "${URL}" \
           -d "{\"body\":\"v${{steps.planned_version.outputs.planned_version}} can be released\"}"
 
+...

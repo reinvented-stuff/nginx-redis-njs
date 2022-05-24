@@ -1,8 +1,14 @@
+---
+# yamllint disable rule:line-length
+# yamllint disable rule:truthy
+
 name: Build feature branch
 
 on:
   push:
-    branches: [ '*', '!master' ]
+    branches:
+      - '*'
+      - '!master'
 
 jobs:
 
@@ -24,30 +30,35 @@ jobs:
         with:
           fetch-depth: 0
 
+
       - name: Get trigger branch name
         id: get_branch_name
         shell: bash
         run: |
           echo "::set-output name=branch_name::${GITHUB_REF#refs/heads/}"
 
+
       - name: Check if .version file exists
         id: version_file_exists
         run: |
-          if [[ -f .version ]]; then 
+          if [[ -f .version ]]; then
             echo "::set-output name=version_file_exists::true"
-          else 
-            echo "::set-output name=version_file_exists::false" 
+          else
+            echo "::set-output name=version_file_exists::false"
           fi
+
 
       - name: Read out .version file
         if: steps.version_file_exists.outputs.version_file_exists == 'true'
         id: planned_version
         run: echo "::set-output name=planned_version::$(cat .version)"
 
+
       - name: Display planned version
         id: display_planned_version
         run: |
           echo "::debug::Planned version: ${{ steps.planned_version.outputs.planned_version }}"
+
 
       - name: Lookup planned tag
         id: lookup_tag
@@ -57,12 +68,14 @@ jobs:
           curl -s -X GET -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' --url "${URL}" | jq .object.sha | tee "${OUTFILE}"
           echo "::set-output name=tag_hash::$(cat "${OUTFILE}")"
 
+
       - name: Define if can create a new version
         id: can_create
         if: steps.lookup_tag.outputs.tag_hash == 'null'
         run: |
           echo "::set-output name=tag_exists::false"
           echo "::set-output name=can_create::true"
+
 
   build_and_test:
     name: Build, Test
@@ -71,7 +84,7 @@ jobs:
       job_status: ${{ job.status }}
       filename: ${{ steps.artifact_meta.outputs.filename }}
 
-    needs: 
+    needs:
       - validate_new_version
 
     env:
@@ -84,8 +97,9 @@ jobs:
 
     if: >
       github.event_name == 'push'
-    
+
     steps:
+
 
       - name: Validate envionment variables
         id: validate_envvars
@@ -97,15 +111,18 @@ jobs:
           [[ ! -z "TAG_EXISTS" ]] || exit 2
           [[ ! -z "BRANCH_NAME" ]] || exit 2
 
+
       - name: Check out code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
+
       - name: Login to Docker registry
         id: docker_registry_login
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
 
       - name: Define version suffix
         id: version_suffix
@@ -137,6 +154,7 @@ jobs:
 
       - name: Push Docker image to registry
         run: |
-          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')          
+          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
           docker push "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
 
+...

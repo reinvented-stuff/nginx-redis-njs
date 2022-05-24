@@ -61,15 +61,14 @@ FROM alpine:3.16
 ARG NGINX_EXPOSE=80 443
 
 RUN apk add pcre-dev geoip 
-RUN mkdir -pv /var/log/nginx /etc/nginx/conf /etc/nginx/modules
+RUN mkdir -pv /var/log/nginx /etc/nginx
 
 WORKDIR /
 
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
-COPY --from=builder /etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
-VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
+VOLUME ["/var/log/nginx", "/etc/nginx"]
 
 WORKDIR /etc/nginx
 

@@ -1,5 +1,7 @@
 ---
 # yamllint disable rule:line-length
+# yamllint disable rule:truthy
+
 name: Release
 
 on:
@@ -8,7 +10,6 @@ on:
       - master
 
 jobs:
-
   validate_new_version:
     name: Validate new version
     runs-on: ubuntu-latest
@@ -27,11 +28,13 @@ jobs:
         with:
           fetch-depth: 0
 
+
       - name: Get trigger branch name
         id: get_branch_name
         shell: bash
         run: |
           echo "::set-output name=branch_name::${GITHUB_REF#refs/heads/}"
+
 
       - name: Check if .version file exists
         id: version_file_exists
@@ -42,15 +45,18 @@ jobs:
             echo "::set-output name=version_file_exists::false"
           fi
 
+
       - name: Read out .version file
         if: steps.version_file_exists.outputs.version_file_exists == 'true'
         id: planned_version
         run: echo "::set-output name=planned_version::$(cat .version)"
 
+
       - name: Display planned version
         id: display_planned_version
         run: |
           echo "::debug::Planned version: ${{steps.planned_version.outputs.planned_version}}"
+
 
       - name: Lookup planned tag
         id: lookup_tag
@@ -60,6 +66,7 @@ jobs:
           curl -s -X GET -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' --url "${URL}" | jq .object.sha | tee "${OUTFILE}"
           echo "::set-output name=tag_hash::$(cat "${OUTFILE}")"
 
+
       - name: Define if can create a new version
         id: can_create
         if: steps.lookup_tag.outputs.tag_hash == 'null'
@@ -67,12 +74,14 @@ jobs:
           echo "::set-output name=tag_exists::false"
           echo "::set-output name=can_create::true"
 
+
       - name: Fail on pull request if version already exists
         id: fail_on_master
         if: >
           github.event_name == 'pull_request' &&
           steps.can_create.outputs.can_create != 'true'
         run: exit 2
+
 
   release:
     name: Build, Test, Packages
@@ -131,7 +140,6 @@ jobs:
             long_suffix="${BRANCH_NAME}"
           fi
 
-
           echo "::set-output name=short::${short_suffix}"
           echo "::set-output name=long::${long_suffix}"
 
@@ -148,6 +156,7 @@ jobs:
           --file Dockerfile
           .
 
+
       - name: Push Docker image to registry
         run: |
           GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
@@ -162,7 +171,7 @@ jobs:
           described_parts=( ${described//-/ } )
           current_tag=${described_parts[0]}
 
-          podman_command_example="podman pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          pull_command_example="podman pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
 
           changelog_filename=".changelog"
           release_changelog_filename=".release_changelog"
@@ -193,6 +202,7 @@ jobs:
           echo "::set-output name=changelog_filename::${changelog_filename}"
           echo "::set-output name=release_changelog_filename::${release_changelog_filename}"
 
+
       - name: Display changelog
         run: echo "${{ steps.generate_changelog.outputs.changelog }}"
 
@@ -215,6 +225,7 @@ jobs:
               "email": "noreply@localhost.localdomain",
               "date": "${{steps.timestamp.outputs.timestamp}}"
             }'
+
 
       - name: Create a Release
         id: create_release
