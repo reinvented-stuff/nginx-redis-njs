@@ -1,0 +1,134 @@
+name: Validate pull request to master
+
+on:
+  pull_request:
+    branches: [ 'master' ]
+
+jobs:
+
+  validate_new_version:
+    name: Validate new version
+    runs-on: ubuntu-latest
+    outputs:
+      planned_version: ${{ steps.planned_version.outputs.planned_version }}
+      tag_hash: ${{ steps.tag_exists.outputs.tag_exists }}
+      can_create: ${{ steps.can_create.outputs.can_create }}
+      job_status: ${{ job.status }}
+
+    continue-on-error: true
+
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Check if .version file exists
+        id: version_file_exists
+        run: |
+          if [[ -f .version ]]; then 
+            echo "::set-output name=version_file_exists::true"
+          else 
+            echo "::set-output name=version_file_exists::false" 
+          fi
+
+      - name: Read out .version file
+        if: steps.version_file_exists.outputs.version_file_exists == 'true'
+        id: planned_version
+        run: echo "::set-output name=planned_version::$(cat .version)"
+
+      - name: Display planned version
+        id: display_planned_version
+        run: |
+          echo "::debug::Planned version: ${{steps.planned_version.outputs.planned_version}}"
+
+      - name: Lookup planned tag
+        id: lookup_tag
+        run: |
+          URL="https://api.github.com/repos/${{github.repository}}/git/refs/tags/${{steps.planned_version.outputs.planned_version}}"
+          OUTFILE=".tag_hash"
+          curl -s -X GET -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' --url "${URL}" | jq .object.sha | tee "${OUTFILE}"
+          echo "::set-output name=tag_hash::$(cat "${OUTFILE}")"
+      
+      - name: Check if planned tag doesn't exist yet
+        id: tag_exists
+        if: steps.lookup_tag.outputs.tag_hash == 'null'
+        run: |
+          echo "::set-output name=tag_exists::false"
+
+      - name: Define if can create a new version
+        id: can_create
+        if: steps.tag_exists.outputs.tag_exists == 'false'
+        run: |
+          echo "::set-output name=can_create::true"
+
+      - name: Pass if new version can't be created
+        id: validation_result
+        if: steps.can_create.outputs.can_create != 'true'
+        run: |
+
+          URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels/RELEASEABLE"
+          echo "URL: ${URL}"
+          
+          curl \
+          -s \
+          -X DELETE \
+          -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          -H "Accept: application/vnd.github.v3+json" \
+          --url "${URL}"
+
+
+          URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels"
+          echo "URL: ${URL}"
+          
+          curl \
+          -s \
+          -X POST \
+          -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          -H "Accept: application/vnd.github.v3+json" \
+          --url "${URL}" \
+          -d "{\"labels\":[\"UNRELEASEABLE\"]}"
+
+
+          URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/comments"
+          echo "URL: ${URL}"
+          
+          curl \
+          -s \
+          -X POST \
+          -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          -H "Accept: application/vnd.github.v3+json" \
+          --url "${URL}" \
+          -d "{\"body\":\"Now it's broken and can't be released.\"}"
+
+          exit 1
+
+      - name: Label pull request as releaseable
+        id: label_pr
+        run: |
+          URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/labels"
+          echo "URL: ${URL}"
+          
+          curl \
+          -s \
+          -X POST \
+          -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          -H "Accept: application/vnd.github.v3+json" \
+          --url "${URL}" \
+          -d "{\"labels\":[\"RELEASEABLE\"]}"
+
+      - name: Comment new version on the pull request
+        id: comment_pr
+        run: |
+          URL="https://api.github.com/repos/${{github.repository}}/issues/${{ github.event.pull_request.number }}/comments"
+          echo "URL: ${URL}"
+          
+          curl \
+          -s \
+          -X POST \
+          -H 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          -H "Accept: application/vnd.github.v3+json" \
+          --url "${URL}" \
+          -d "{\"body\":\"v${{steps.planned_version.outputs.planned_version}} can be released\"}"
+
