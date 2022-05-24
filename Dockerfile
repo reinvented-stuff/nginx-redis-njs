@@ -46,6 +46,7 @@ RUN ./configure \
   --with-stream_ssl_preread_module \
 
   --prefix=/etc/nginx \
+  --conf-path=/etc/nginx \
   --http-log-path=/var/log/nginx/access.log \
   --error-log-path=/var/log/nginx/error.log \
   --sbin-path=/usr/sbin/nginx \
