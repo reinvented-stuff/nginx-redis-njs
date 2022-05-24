@@ -27,8 +27,6 @@ RUN ./configure \
   --with-http_geoip_module \
   --with-http_gunzip_module \
   --with-http_gzip_static_module \
-  --with-http_image_filter_module \
-  --with-http_perl_module \
   --with-http_random_index_module \
   --with-http_realip_module \
   --with-http_secure_link_module \
@@ -61,6 +59,7 @@ FROM alpine:3.16
 
 ARG NGINX_EXPOSE=80 443
 
+RUN apk add pcre-dev geoip 
 RUN mkdir -pv /var/log/nginx /etc/nginx/conf /etc/nginx/modules
 
 WORKDIR /
