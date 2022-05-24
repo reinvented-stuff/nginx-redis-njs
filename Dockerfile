@@ -8,9 +8,9 @@ ARG NGINX_NJS_VERSION=0.7.3
 
 ENV NGINX_DOWNLOAD_URL="https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz"
 ENV NGINX_REDIS_DOWNLOAD_URL="https://people.freebsd.org/~osa/ngx_http_redis-${NGINX_REDIS_VERSION}.tar.gz"
-ENV NGINX_NJS_DOWNLOAD_URL="http://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
+ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
 
-RUN apk --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev
+RUN apk --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
 RUN mkdir -pv /src 
 
 WORKDIR /src
@@ -27,8 +27,6 @@ RUN ./configure \
   --with-http_geoip_module \
   --with-http_gunzip_module \
   --with-http_gzip_static_module \
-  --with-http_image_filter_module \
-  --with-http_perl_module \
   --with-http_random_index_module \
   --with-http_realip_module \
   --with-http_secure_link_module \
@@ -48,6 +46,7 @@ RUN ./configure \
   --with-stream_ssl_preread_module \
 
   --prefix=/etc/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
   --http-log-path=/var/log/nginx/access.log \
   --error-log-path=/var/log/nginx/error.log \
   --sbin-path=/usr/sbin/nginx \
@@ -61,16 +60,14 @@ FROM alpine:3.16
 
 ARG NGINX_EXPOSE=80 443
 
+RUN apk add pcre-dev geoip 
+RUN mkdir -pv /var/log/nginx /etc/nginx/conf /etc/nginx/modules
+
 WORKDIR /
 
-ADD /etc/nginx .
-ADD /usr/sbin/nginx .
-ADD /etc/nginx/modules .
-ADD /etc/nginx/conf .
-ADD /etc/nginx/conf/nginx.conf .
-ADD /etc/nginx/logs/nginx.pid .
-ADD /var/log/nginx/error.log .
-ADD /var/log/nginx/access.log .
+COPY --from=builder /etc/nginx /etc/nginx
+COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
+COPY --from=builder /etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
 
