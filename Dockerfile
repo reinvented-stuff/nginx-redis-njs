@@ -67,7 +67,6 @@ COPY --from=builder /etc/nginx .
 COPY --from=builder /usr/sbin/nginx .
 COPY --from=builder /etc/nginx/conf .
 COPY --from=builder /etc/nginx/conf/nginx.conf .
-COPY --from=builder /etc/nginx/logs/nginx.pid .
 COPY --from=builder /var/log/nginx/error.log .
 COPY --from=builder /var/log/nginx/access.log .
 
