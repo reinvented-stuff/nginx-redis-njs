@@ -61,14 +61,14 @@ FROM alpine:3.16
 
 ARG NGINX_EXPOSE=80 443
 
+RUN mkdir -pv /var/log/nginx /etc/nginx/conf /etc/nginx/modules
+
 WORKDIR /
 
 COPY --from=builder /etc/nginx .
 COPY --from=builder /usr/sbin/nginx .
 COPY --from=builder /etc/nginx/conf .
 COPY --from=builder /etc/nginx/conf/nginx.conf .
-COPY --from=builder /var/log/nginx/error.log .
-COPY --from=builder /var/log/nginx/access.log .
 
 VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
 
