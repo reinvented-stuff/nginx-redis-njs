@@ -1,8 +1,11 @@
+---
+# yamllint disable rule:line-length
 name: Release
 
 on:
   push:
-    branches: [ 'master' ]
+    branches:
+      - master
 
 jobs:
 
@@ -33,10 +36,10 @@ jobs:
       - name: Check if .version file exists
         id: version_file_exists
         run: |
-          if [[ -f .version ]]; then 
+          if [[ -f .version ]]; then
             echo "::set-output name=version_file_exists::true"
-          else 
-            echo "::set-output name=version_file_exists::false" 
+          else
+            echo "::set-output name=version_file_exists::false"
           fi
 
       - name: Read out .version file
@@ -151,7 +154,6 @@ jobs:
           docker push "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
 
 
-
       - name: Generate changelog
         id: generate_changelog
         shell: bash
@@ -178,9 +180,9 @@ jobs:
           Docker image
           ============
 
-          `podman ${pull_command_example}`
+          \`podman ${pull_command_example}\`
 
-          `docker ${pull_command_example}`
+          \`docker ${pull_command_example}\`
 
           Changelog
           =========
@@ -193,7 +195,6 @@ jobs:
 
       - name: Display changelog
         run: echo "${{ steps.generate_changelog.outputs.changelog }}"
-
 
 
       - name: Create a new tag
@@ -223,7 +224,7 @@ jobs:
           github.event_name == 'push'
         uses: actions/create-release@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{env.PLANNED_VERSION}}
           release_name: v${{env.PLANNED_VERSION}}
@@ -231,3 +232,4 @@ jobs:
           draft: false
           prerelease: false
 
+...
