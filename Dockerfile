@@ -67,7 +67,7 @@ WORKDIR /
 
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
-COPY --from=builder /etc/nginx/conf/nginx.conf /etc/nginx/conf/nginx.conf
+COPY --from=builder /etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 VOLUME ["/var/log/nginx", "/etc/nginx", "/etc/nginx/modules"]
 
