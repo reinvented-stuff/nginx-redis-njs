@@ -160,6 +160,8 @@ jobs:
           described_parts=( ${described//-/ } )
           current_tag=${described_parts[0]}
 
+          podman_command_example="podman pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+
           changelog_filename=".changelog"
           release_changelog_filename=".release_changelog"
           echo "current_tag=${current_tag}"
@@ -176,17 +178,13 @@ jobs:
           Docker image
           ============
 
-          ```
-          podman pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}
-          ```
+          `podman ${pull_command_example}`
 
-          ```
-          docker pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}
-          ```
+          `docker ${pull_command_example}`
 
           Changelog
           =========
-          
+
           $(cat "${release_changelog_filename}")
           EOF
 
