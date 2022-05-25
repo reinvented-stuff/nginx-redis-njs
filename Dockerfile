@@ -45,7 +45,7 @@ RUN ./configure \
   --with-stream_geoip_module \
   --with-stream_ssl_preread_module \
 
-  --prefix=/etc/nginx \
+  --prefix=/usr/share/nginx \
   --conf-path=/etc/nginx/nginx.conf \
   --http-log-path=/var/log/nginx/access.log \
   --error-log-path=/var/log/nginx/error.log \
@@ -66,6 +66,7 @@ RUN mkdir -pv /var/log/nginx /etc/nginx
 WORKDIR /
 
 COPY --from=builder /etc/nginx /etc/nginx
+COPY --from=builder /usr/share/nginx /usr/share/nginx
 COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
 
 VOLUME ["/var/log/nginx", "/etc/nginx"]
