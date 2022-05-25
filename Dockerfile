@@ -2,7 +2,7 @@ FROM alpine:3.16 as builder
 
 LABEL maintainer="Pavel Kim <hello@pavelkim.com>"
 
-ARG NGINX_VERSION=1.22.0 
+ARG NGINX_VERSION=1.22.0
 ARG NGINX_REDIS_VERSION=0.3.9
 ARG NGINX_NJS_VERSION=0.7.3
 
@@ -11,7 +11,7 @@ ENV NGINX_REDIS_DOWNLOAD_URL="https://people.freebsd.org/~osa/ngx_http_redis-${N
 ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
 
 RUN apk --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
-RUN mkdir -pv /src 
+RUN mkdir -pv /src
 
 WORKDIR /src
 
@@ -60,16 +60,15 @@ FROM alpine:3.16
 
 ARG NGINX_EXPOSE=80 443
 
-RUN apk add pcre-dev geoip 
-RUN mkdir -pv /var/log/nginx /etc/nginx
+RUN apk add pcre-dev geoip
 
 WORKDIR /
 
 COPY --from=builder /etc/nginx /etc/nginx
-COPY --from=builder /usr/share/nginx /usr/share/nginx
+COPY --from=builder /usr/share/nginx/html /usr/share/nginx/html
 COPY --from=builder /usr/sbin/nginx /usr/sbin/nginx
 
-VOLUME ["/var/log/nginx", "/etc/nginx"]
+VOLUME ["/var/log/nginx", "/etc/nginx", "/usr/share/nginx"]
 
 WORKDIR /etc/nginx
 
