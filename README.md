@@ -31,6 +31,21 @@ Create directories:
 ```
 mkdir -pv /opt/nginx-redis-njs/etc/nginx
 mkdir -pv /opt/nginx-redis-njs/var/log/nginx
+mkdir -pv /opt/nginx-redis-njs/usr/share/nginx
+mkdir -pv /opt/nginx-redis-njs/etc/pki/tls/certs
+mkdir -pv /opt/nginx-redis-njs/etc/pki/tls/private
+```
+
+Generate self-signed certificate:
+```
+openssl req -x509 \
+  -newkey rsa:4096 \
+  -subj '/CN=helloworld' \
+  -nodes \
+  -keyout /opt/nginx-redis-njs/etc/pki/tls/private/helloworld.key \
+  -out /opt/nginx-redis-njs/etc/pki/tls/certs/helloworld.cert \
+  -sha256 \
+  -days 9365
 ```
 
 Provision nginx configuration:
@@ -48,6 +63,8 @@ podman run \
     --net="host" \
     --pid="host" \
     -v "/opt/nginx-redis-njs/etc/nginx:/etc/nginx" \
+    -v "/opt/nginx-redis-njs/etc/pki/:/etc/pki" \
     -v "/opt/nginx-redis-njs/var/log/nginx:/var/log/nginx" \
+    -v "/opt/nginx-redis-njs/usr/share/nginx:/usr/share/nginx" \
     ghcr.io/reinvented-stuff/nginx-redis-njs/nginx-redis-njs:1.0.3
 ```
