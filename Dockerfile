@@ -1,8 +1,5 @@
 FROM alpine:3.16 as builder
 
-LABEL org.opencontainers.image.authors="Pavel Kim <hello@pavelkim.com>"
-LABEL org.opencontainers.image.description="Nginx with Redis, Redis2 and njs"
-
 ARG NGINX_VERSION=1.22.0
 ARG NGINX_REDIS_VERSION=0.3.9
 ARG NGINX_REDIS2_VERSION=0.15
