@@ -140,21 +140,56 @@ jobs:
           echo "::set-output name=long::${long_suffix}"
 
 
+      - name: Define Docker image ID and full name
+        id: set_docker_image_id
+        run: |
+          GITHUB_IMAGE_ID="$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')"
+          GITHUB_IMAGE_FULL_NAME="${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+
+          echo "GITHUB_IMAGE_ID: '${GITHUB_IMAGE_ID}'"
+          echo "GITHUB_IMAGE_FULL_NAME: '${GITHUB_IMAGE_FULL_NAME}'"
+
+          echo "::set-output name=github_image_id::${GITHUB_IMAGE_ID}"
+          echo "::set-output name=github_image_full_name::${GITHUB_IMAGE_FULL_NAME}"
+
+
+      - name: Notify that docker image is about to be built
+        uses: rest-gateway/notification-action@master
+        with:
+          message: >-
+            Now building the docker image:
+            ${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
+
+
       - name: Build Docker image
         id: build_docker_image
         shell: bash
         run: >
-          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
-
           docker build
-          --tag "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          --tag "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
           --build-arg BUILD_VERSION="${PLANNED_VERSION}"
           --file Dockerfile
           .
 
       - name: Push Docker image to registry
         run: |
-          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
-          docker push "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          docker push "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
+
+
+      - name: Notify that docker image has been built and pushed
+        uses: rest-gateway/notification-action@master
+        with:
+          message: >-
+            Docker image successfully built and pushed:
+
+            ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
 
 ...
