@@ -75,6 +75,22 @@ jobs:
           echo "::set-output name=can_create::true"
 
 
+      - name: Notify about the version availability
+        uses: rest-gateway/notification-action@master
+        with:
+          message: >-
+            Release ${{github.repository}}
+
+            Can create tag
+            '${{steps.planned_version.outputs.planned_version}}':
+            ${{ steps.can_create.outputs.can_create }}
+
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
+
+
       - name: Fail on pull request if version already exists
         id: fail_on_master
         if: >
@@ -157,6 +173,18 @@ jobs:
           echo "::set-output name=github_image_full_name::${GITHUB_IMAGE_FULL_NAME}"
 
 
+      - name: Notify that docker image is about to be built
+        uses: rest-gateway/notification-action@master
+        with:
+          message: >-
+            Now building the docker image:
+            ${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
+
+
       - name: Build Docker image
         id: build_docker_image
         shell: bash
@@ -167,10 +195,24 @@ jobs:
           --file Dockerfile
           .
 
+
       - name: Push Docker image to registry
         id: push_docker_image
         run: |
           docker push "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
+
+
+      - name: Notify that docker image has been built and pushed
+        uses: rest-gateway/notification-action@master
+        with:
+          message: >-
+            Docker image successfully built and pushed:
+
+            ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
 
 
       - name: Generate changelog
@@ -252,5 +294,23 @@ jobs:
           body_path: ${{steps.generate_changelog.outputs.release_changelog_filename}}
           draft: false
           prerelease: false
+
+
+      - name: Notify about release
+        uses: rest-gateway/notification-action@master
+        with:
+          message: |
+            <b>Release ${{env.APP_NAME}}:</b>
+            ${{env.PLANNED_VERSION}}
+
+            <b>Docker image:</b>
+            ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+
+            <b>Release:</b>
+            https://github.com/${{ github.repository }}/releases/tag/${{env.PLANNED_VERSION}}
+          recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
+          rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
+          rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
+          rest_gateway_bot_name: "${{ secrets.REST_GATEWAY_BOT_NAME }}"
 
 ...
