@@ -81,7 +81,7 @@ jobs:
           message: >-
             Release ${{github.repository}}
 
-            Can create tag 
+            Can create tag
             '${{steps.planned_version.outputs.planned_version}}':
             ${{ steps.can_create.outputs.can_create }}
 

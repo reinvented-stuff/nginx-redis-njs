@@ -2,13 +2,6 @@
 
 Nginx compiled with Redis, Redis2 and njs modules.
 
-Versions:
-* Nginx: 1.22.1
-* Redis module: 0.3.9
-* Redis2 module: 0.15
-* njs module: 0.7.9
-
-
 Also includes:
 * http_addition_module
 * http_auth_request_module
