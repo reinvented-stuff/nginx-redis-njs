@@ -16,7 +16,7 @@ jobs:
     name: Send notification on start
     runs-on: ubuntu-latest
 
-    steps:
+  steps:
 
       - name: Send notification on start
         uses: rest-gateway/notification-action@master
