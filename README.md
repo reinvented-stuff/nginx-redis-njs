@@ -1,6 +1,6 @@
 # nginx-redis-njs
 
-Nginx compiled with Redis and njs modules.
+Nginx compiled with Redis, Redis2 and njs modules.
 
 Also includes:
 * http_addition_module
@@ -24,6 +24,15 @@ Also includes:
 * stream_geoip_module
 * stream_ssl_preread_module
 
+# Official documentation
+
+Nginx: https://nginx.org/en/docs/
+
+njs: https://nginx.org/en/docs/njs/
+
+Redis: https://www.nginx.com/resources/wiki/modules/redis/
+
+Redis2: https://www.nginx.com/resources/wiki/modules/redis2/
 
 # Usage example
 
