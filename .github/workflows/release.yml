@@ -144,23 +144,33 @@ jobs:
           echo "::set-output name=long::${long_suffix}"
 
 
+      - name: Define Docker image ID and full name
+        id: set_docker_image_id
+        run: |
+          GITHUB_IMAGE_ID="$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')"
+          GITHUB_IMAGE_FULL_NAME="${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+
+          echo "GITHUB_IMAGE_ID: '${GITHUB_IMAGE_ID}'"
+          echo "GITHUB_IMAGE_FULL_NAME: '${GITHUB_IMAGE_FULL_NAME}'"
+
+          echo "::set-output name=github_image_id::${GITHUB_IMAGE_ID}"
+          echo "::set-output name=github_image_full_name::${GITHUB_IMAGE_FULL_NAME}"
+
+
       - name: Build Docker image
         id: build_docker_image
         shell: bash
         run: >
-          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
-
           docker build
-          --tag "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          --tag "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
           --build-arg BUILD_VERSION="${PLANNED_VERSION}"
           --file Dockerfile
           .
 
-
       - name: Push Docker image to registry
+        id: push_docker_image
         run: |
-          GITHUB_IMAGE_ID=$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')
-          docker push "ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          docker push "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
 
 
       - name: Generate changelog
@@ -171,7 +181,7 @@ jobs:
           described_parts=( ${described//-/ } )
           current_tag=${described_parts[0]}
 
-          pull_command_example="podman pull ghcr.io/${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
+          pull_command_example="pull ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
 
           changelog_filename=".changelog"
           release_changelog_filename=".release_changelog"
