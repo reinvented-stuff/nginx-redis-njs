@@ -1,16 +1,16 @@
 FROM alpine:3.16 as builder
 
-ARG NGINX_VERSION=1.22.0
+ARG NGINX_VERSION=1.22.1
 ARG NGINX_REDIS_VERSION=0.3.9
 ARG NGINX_REDIS2_VERSION=0.15
-ARG NGINX_NJS_VERSION=0.7.3
+ARG NGINX_NJS_VERSION=0.7.9
 
 ENV NGINX_DOWNLOAD_URL="https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz"
 ENV NGINX_REDIS_DOWNLOAD_URL="https://people.freebsd.org/~osa/ngx_http_redis-${NGINX_REDIS_VERSION}.tar.gz"
 ENV NGINX_REDIS2_DOWNLOAD_URL="https://github.com/openresty/redis2-nginx-module/archive/refs/tags/v${NGINX_REDIS2_VERSION}.tar.gz"
 ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
 
-RUN apk --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
+RUN apk --no-cache --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
 RUN mkdir -pv /src
 
 WORKDIR /src
@@ -65,7 +65,7 @@ LABEL org.opencontainers.image.description="Nginx with Redis, Redis2 and njs"
 
 ARG NGINX_EXPOSE=80 443
 
-RUN apk add pcre-dev geoip
+RUN apk --no-cache add pcre-dev geoip
 
 WORKDIR /
 
