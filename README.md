@@ -1,10 +1,9 @@
 # nginx-redis-njs
 
-Nginx compiled with Redis, Redis2 and njs modules.
+Nginx compiled with Redis2, and njs modules.
 
 Versions:
 * Nginx: 1.24.0
-* Redis module: 0.3.9
 * Redis2 module: 0.15
 * njs module: 0.8.2
 
@@ -36,8 +35,6 @@ Also includes:
 Nginx: https://nginx.org/en/docs/
 
 njs: https://nginx.org/en/docs/njs/
-
-Redis: https://www.nginx.com/resources/wiki/modules/redis/
 
 Redis2: https://www.nginx.com/resources/wiki/modules/redis2/
 
