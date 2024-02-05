@@ -61,7 +61,7 @@ LABEL org.opencontainers.image.description="Nginx with Redis2, and njs"
 
 ARG NGINX_EXPOSE=80 443
 
-RUN apk --no-cache add pcre-dev geoip
+RUN apk --no-cache add pcre-dev geoip libxml2
 
 WORKDIR /
 
