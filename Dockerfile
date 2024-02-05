@@ -10,7 +10,7 @@ ENV NGINX_REDIS_DOWNLOAD_URL="https://people.freebsd.org/~osa/ngx_http_redis-${N
 ENV NGINX_REDIS2_DOWNLOAD_URL="https://github.com/openresty/redis2-nginx-module/archive/refs/tags/v${NGINX_REDIS2_VERSION}.tar.gz"
 ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
 
-RUN apk --no-cache --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev
+RUN apk --no-cache --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev libxml2 libxml2-dev
 RUN mkdir -pv /src
 
 WORKDIR /src
