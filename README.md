@@ -3,10 +3,10 @@
 Nginx compiled with Redis, Redis2 and njs modules.
 
 Versions:
-* Nginx: 1.23.1
+* Nginx: 1.24.0
 * Redis module: 0.3.9
 * Redis2 module: 0.15
-* njs module: 0.7.7
+* njs module: 0.8.2
 
 
 Also includes:
