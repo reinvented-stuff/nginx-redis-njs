@@ -176,7 +176,7 @@ podman run \
     -v "/opt/nginx-redis-njs/etc/pki/:/etc/pki" \
     -v "/opt/nginx-redis-njs/var/log/nginx:/var/log/nginx" \
     -v "/opt/nginx-redis-njs/usr/share/nginx:/usr/share/nginx" \
-    ghcr.io/reinvented-stuff/nginx-redis-njs/nginx-redis-njs:2.3.0-1.30.7-0.15-1.0.2-0.4.2
+    ghcr.io/reinvented-stuff/nginx-redis-njs/nginx-redis-njs:3.0.0-1.30.7-0.15-1.0.2-0.4.2
 ```
 
 Check that it works:
