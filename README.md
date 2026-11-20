@@ -8,6 +8,8 @@ Versions:
 * HttpRedis module: 0.4.2
 * njs module: 1.0.2
 
+Image tags: each release is tagged with its version (`3.0.0`) and with the bundled versions appended in the order nginx, redis2, njs, HttpRedis (`3.0.0-1.30.7-0.15-1.0.2-0.4.2`).
+
 
 Also includes:
 * compat
@@ -47,14 +49,6 @@ Redis2: https://github.com/openresty/redis2-nginx-module
 
 HttpRedis: https://github.com/osokin/ngx_http_redis
 
-# Image defaults
-
-* The built-in config listens on port 80 and serves `/usr/share/nginx/html`.
-* `/var/log/nginx/access.log` and `error.log` point to stdout and stderr, so `docker logs` shows them. Mount `/var/log/nginx` to write log files instead.
-* Worker processes run as `nginx` (uid/gid 101) unless the config sets `user`.
-* The pid file is `/run/nginx.pid`; temporary files go to `/var/cache/nginx`.
-* `docker stop` sends `SIGQUIT`, so nginx finishes in-flight requests before exiting.
-
 # Redis modules
 
 The image has two Redis modules. They can be used side by side.
@@ -76,6 +70,14 @@ The module URL-escapes the key before the lookup, so a key containing spaces or 
 **Redis2** (`redis2_query`, `redis2_pass`) can send any Redis command, but returns the raw Redis protocol reply (for example `$5\r\nhello\r\n`). Parse it in njs if you need the value.
 
 Mark Redis locations `internal` when only njs subrequests should reach them.
+
+# Image defaults
+
+* The built-in config listens on port 80 and serves `/usr/share/nginx/html`.
+* `/var/log/nginx/access.log` and `error.log` point to stdout and stderr, so `docker logs` shows them. Mount `/var/log/nginx` to write log files instead.
+* Worker processes run as `nginx` (uid/gid 101) unless the config sets `user`.
+* The pid file is `/run/nginx.pid`; temporary files go to `/var/cache/nginx`.
+* `docker stop` sends `SIGQUIT`, so nginx finishes in-flight requests before exiting.
 
 # Example with Redis (Docker Compose)
 
@@ -133,6 +135,7 @@ Don't commit a private key you use anywhere else.
 # Usage example
 
 Create directories:
+
 ```
 mkdir -pv /opt/nginx-redis-njs/etc/nginx
 mkdir -pv /opt/nginx-redis-njs/var/log/nginx
@@ -142,6 +145,7 @@ mkdir -pv /opt/nginx-redis-njs/etc/pki/tls/private
 ```
 
 Generate self-signed certificate:
+
 ```
 openssl req -x509 \
   -newkey rsa:4096 \
@@ -176,7 +180,7 @@ podman run \
     -v "/opt/nginx-redis-njs/etc/pki/:/etc/pki" \
     -v "/opt/nginx-redis-njs/var/log/nginx:/var/log/nginx" \
     -v "/opt/nginx-redis-njs/usr/share/nginx:/usr/share/nginx" \
-    ghcr.io/reinvented-stuff/nginx-redis-njs/nginx-redis-njs:3.0.0-1.30.7-0.15-1.0.2-0.4.2
+    ghcr.io/reinvented-stuff/nginx-redis-njs/nginx-redis-njs:3.0.0
 ```
 
 Check that it works:

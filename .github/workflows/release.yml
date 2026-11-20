@@ -166,11 +166,26 @@ jobs:
           GITHUB_IMAGE_ID="$(echo "${{ github.repository }}/${APP_NAME}${IMAGE_ID}" | tr '[A-Z]' '[a-z]')"
           GITHUB_IMAGE_FULL_NAME="${GITHUB_IMAGE_ID}:${PLANNED_VERSION}${{ steps.version_suffix.outputs.long }}"
 
+          # Second tag with the bundled component versions, read from the Dockerfile ARG defaults:
+          # <version>-<nginx>-<redis2>-<njs>-<httpredis>, e.g. 3.0.0-1.30.7-0.15-1.0.2-0.4.2
+          COMPONENTS_VERSION=""
+          for arg in NGINX_VERSION NGINX_REDIS2_VERSION NGINX_NJS_VERSION NGINX_HTTP_REDIS_VERSION; do
+            value="$(sed -n "s/^ARG ${arg}=//p" Dockerfile)"
+            if [[ -z "${value}" ]]; then
+              echo "ARG ${arg} not found in Dockerfile"
+              exit 2
+            fi
+            COMPONENTS_VERSION="${COMPONENTS_VERSION:+${COMPONENTS_VERSION}-}${value}"
+          done
+          GITHUB_IMAGE_COMPONENTS_NAME="${GITHUB_IMAGE_ID}:${PLANNED_VERSION}-${COMPONENTS_VERSION}"
+
           echo "GITHUB_IMAGE_ID: '${GITHUB_IMAGE_ID}'"
           echo "GITHUB_IMAGE_FULL_NAME: '${GITHUB_IMAGE_FULL_NAME}'"
+          echo "GITHUB_IMAGE_COMPONENTS_NAME: '${GITHUB_IMAGE_COMPONENTS_NAME}'"
 
           echo "::set-output name=github_image_id::${GITHUB_IMAGE_ID}"
           echo "::set-output name=github_image_full_name::${GITHUB_IMAGE_FULL_NAME}"
+          echo "::set-output name=github_image_components_name::${GITHUB_IMAGE_COMPONENTS_NAME}"
 
 
       - name: Notify that docker image is about to be built
@@ -191,6 +206,7 @@ jobs:
         run: >
           docker build
           --tag "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
+          --tag "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_components_name }}"
           --build-arg BUILD_VERSION="${PLANNED_VERSION}"
           --file Dockerfile
           .
@@ -200,6 +216,7 @@ jobs:
         id: push_docker_image
         run: |
           docker push "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
+          docker push "ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_components_name }}"
 
 
       - name: Notify that docker image has been built and pushed
@@ -209,6 +226,8 @@ jobs:
             Docker image successfully built and pushed:
 
             ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}
+
+            ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_components_name }}
           recipient: "${{ secrets.NOTIFICATIONS_DEFAULT_RECIPIENT }}"
           rest_gateway_url: "${{ secrets.REST_GATEWAY_API_URL }}"
           rest_gateway_token: "${{ secrets.REST_GATEWAY_TOKEN }}"
@@ -219,11 +238,11 @@ jobs:
         id: generate_changelog
         shell: bash
         run: |
-          described=$(git describe --tags || git rev-list --max-parents=0 HEAD)
-          described_parts=( ${described//-/ } )
-          current_tag=${described_parts[0]}
+          # Nearest tag by its full name; tags may contain dashes, so don't split "git describe" output.
+          current_tag=$(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
 
           pull_command_example="pull ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_full_name }}"
+          components_image="ghcr.io/${{ steps.set_docker_image_id.outputs.github_image_components_name }}"
 
           changelog_filename=".changelog"
           release_changelog_filename=".release_changelog"
@@ -244,6 +263,8 @@ jobs:
           \`podman ${pull_command_example}\`
 
           \`docker ${pull_command_example}\`
+
+          Also tagged with the bundled versions (nginx, redis2, njs, HttpRedis): \`${components_image}\`
 
           Changelog
           =========
