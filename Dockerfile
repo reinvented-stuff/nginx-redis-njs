@@ -1,12 +1,12 @@
 FROM alpine:3.19 as builder
 
-ARG NGINX_VERSION=1.24.0
+ARG NGINX_VERSION=1.31.9
 ARG NGINX_REDIS2_VERSION=0.15
-ARG NGINX_NJS_VERSION=0.8.2
+ARG NGINX_NJS_VERSION=0.9.0
 
 ENV NGINX_DOWNLOAD_URL="https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz"
 ENV NGINX_REDIS2_DOWNLOAD_URL="https://github.com/openresty/redis2-nginx-module/archive/refs/tags/v${NGINX_REDIS2_VERSION}.tar.gz"
-ENV NGINX_NJS_DOWNLOAD_URL="https://hg.nginx.org/njs/archive/${NGINX_NJS_VERSION}.tar.gz"
+ENV NGINX_NJS_DOWNLOAD_URL="https://github.com/nginx/njs/archive/refs/tags/${NGINX_NJS_VERSION}.tar.gz"
 
 RUN apk --no-cache --update add openssl-dev pcre-dev zlib-dev wget build-base gd-dev geoip-dev perl-dev libxml2 libxml2-dev libxslt libxslt-dev
 RUN mkdir -pv /src
@@ -33,16 +33,13 @@ RUN ./configure \
   --with-http_stub_status_module \
   --with-http_sub_module \
   --with-http_v2_module \
-
   --with-mail \
   --with-mail_ssl_module \
-
   --with-stream \
   --with-stream_ssl_module \
   --with-stream_realip_module \
   --with-stream_geoip_module \
   --with-stream_ssl_preread_module \
-
   --prefix=/usr/share/nginx \
   --conf-path=/etc/nginx/nginx.conf \
   --http-log-path=/var/log/nginx/access.log \

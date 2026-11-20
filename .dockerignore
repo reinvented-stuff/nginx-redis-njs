@@ -1,0 +1,7 @@
+# The image is built entirely from upstream tarballs; nothing below belongs in the build context.
+.git
+.github
+.version
+**/.DS_Store
+*.md
+examples/

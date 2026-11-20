@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Logs written by the examples when their directories are mounted into a container
+examples/*/var/log/nginx/*
+!examples/*/var/log/nginx/.keep
+
+# Private keys: generate them locally, never commit them.
+# (helloworld.key is already tracked and is not affected by this rule.)
+*.key
+*.pem
+
+# Local copy of a production config. It contains live credentials, do not commit it.
+examples/nginx/
