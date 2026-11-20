@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>nginx-redis-njs: key/value example</title>
+<link rel="stylesheet" href="kv.css">
+</head>
+<body>
+
+<h1>Key/value example</h1>
+
+<p>Values are stored in Redis as <code>demo:&lt;key&gt;</code> and expire after one hour.
+Results appear in the box below.</p>
+
+<form method="post" action="/api/kv" target="result">
+<fieldset>
+<legend>Write (njs + redis2)</legend>
+<label>Key<br><input name="key" required maxlength="64" pattern="[A-Za-z0-9_.\-]{1,64}"></label>
+<label>Value<br><textarea name="value" maxlength="1024"></textarea></label>
+<button type="submit">Save</button>
+</fieldset>
+</form>
+
+<form method="get" action="/api/hr" target="result">
+<fieldset>
+<legend>Read</legend>
+<label>Key<br><input name="key" required maxlength="64" pattern="[A-Za-z0-9_.\-]{1,64}"></label>
+<button type="submit">Read via HttpRedis</button>
+<button type="submit" formaction="/api/r2">Read via redis2 + njs</button>
+</fieldset>
+</form>
+
+<iframe name="result" title="Result"></iframe>
+
+<p>Where this example is configured: see <a href="/">/</a>.</p>
+
+</body>
+</html>

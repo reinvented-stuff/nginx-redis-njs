@@ -77,6 +77,59 @@ The module URL-escapes the key before the lookup, so a key containing spaces or 
 
 Mark Redis locations `internal` when only njs subrequests should reach them.
 
+# Example with Redis (Docker Compose)
+
+`examples/nginx-redis-njs/compose.yml` runs the image together with Redis. A small page at `/kv/` writes values through njs + redis2 and reads them back through either module, so you can compare the two.
+
+```
+cd examples/nginx-redis-njs
+cp .env.example .env          # then set your own REDIS_PASSWORD
+docker compose up -d --build
+```
+
+Open http://127.0.0.1:20080/kv/ (or https://127.0.0.1:20443/kv/ with the committed self-signed certificate). `/` says `Hello` and links to the test pages.
+
+| Request | Module | What it does |
+|---|---|---|
+| `GET /kv/` | static | The page (plain HTML, no JavaScript) |
+| `POST /api/kv` (form fields `key`, `value`) | njs + redis2 | Stores `demo:<key>` for one hour |
+| `GET /api/r2?key=<key>` | njs + redis2 | The value, its TTL, and the raw Redis reply |
+| `GET /api/hr?key=<key>` | HttpRedis | The value only, or 404 |
+
+Where things are configured (paths relative to `examples/nginx-redis-njs/`):
+* `compose.yml`: the Redis password, ACL and memory limit; the nginx container's ports and restrictions.
+* `etc/nginx/nginx.conf`: `env REDIS_PASSWORD`, so njs can read the password.
+* `etc/nginx/conf.d/10_helloworld.conf`: the Redis upstream and all key/value locations.
+* `usr/share/nginx/njs/kv.js`: input checks, the cross-site check, parsing of redis2 replies.
+
+What keeps it reasonably safe for a local example:
+* Redis is on an internal-only network, and nginx listens on 127.0.0.1 only.
+* The Redis user can only read and write `demo:*` keys (GET, SET, SELECT, PING, TTL). Anything else, such as `FLUSHALL` or `KEYS`, is refused.
+* Keys are 1-64 characters (letters, digits, `.`, `_`, `-`), values at most 1 KB, and every value expires after an hour. Redis keeps nothing on disk and uses at most 32 MB.
+* Writes are rate-limited (5 per second per client, bursts of 10) and must come from the same origin.
+* Responses are plain text, the page loads no scripts, and the nginx container runs read-only with almost all Linux capabilities dropped.
+
+There is no login: anyone who can reach the ports can read and write `demo:*` keys. Don't expose it beyond your machine as is.
+
+`docker compose logs nginx` shows nginx's main error log. Requests and njs errors go to the per-site logs in the `logs` volume, for example `docker compose exec nginx tail /var/log/nginx/helloworld-error.log`.
+
+When Redis restarts, its values are lost, and nginx picks it up again within about 10 seconds (it re-resolves the `redis` name every 10 s).
+
+## Replacing the TLS certificate
+
+The example ships a self-signed pair for convenience. To make your own:
+
+```
+cd examples/nginx-redis-njs
+openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
+  -subj '/CN=helloworld' \
+  -keyout etc/pki/tls/private/helloworld.key \
+  -out etc/pki/tls/certs/helloworld.crt
+docker compose restart nginx
+```
+
+Don't commit a private key you use anywhere else.
+
 # Usage example
 
 Create directories:
@@ -108,7 +161,7 @@ cp -Rv examples/nginx-redis-njs/etc/nginx/. /opt/nginx-redis-njs/etc/nginx/
 cp -Rv examples/nginx-redis-njs/usr/share/nginx/. /opt/nginx-redis-njs/usr/share/nginx/
 ```
 
-The example serves an njs handler (`usr/share/nginx/njs/helloworld.js`) on port 10080 (HTTP) and 10443 (HTTPS).
+The example serves an njs handler (`usr/share/nginx/njs/helloworld.js`) on port 20080 (HTTP) and 20443 (HTTPS).
 
 Run container:
 ```
@@ -128,8 +181,14 @@ podman run \
 
 Check that it works:
 ```
-curl http://127.0.0.1:10080/
-curl -k https://127.0.0.1:10443/
+curl http://127.0.0.1:20080/
+curl -k https://127.0.0.1:20443/
 ```
 
-Both should answer `Hello`.
+Both should return a page that says `Hello` and links to the test pages.
+
+This setup has no Redis, so the example's key/value endpoints answer `502 redis unavailable`. Use the Docker Compose example above for those.
+
+# TODO
+
+* Generate the example's TLS certificate at startup instead of committing it.

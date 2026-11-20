@@ -1,0 +1,91 @@
+# Key/value example: nginx-redis-njs with Redis, see README.md.
+#
+#   cp .env.example .env          # then set REDIS_PASSWORD
+#   docker compose up -d --build
+#   open http://127.0.0.1:20080/kv/
+
+name: nginx-redis-njs-example
+
+services:
+
+  redis:
+    image: redis:8.8.4-alpine
+    # The default user may only touch demo:* keys and run the listed commands.
+    # Nothing is saved to disk; at most 32 MB, keys with a TTL are evicted first.
+    command:
+      - "redis-server"
+      - "--save"
+      - ""
+      - "--appendonly"
+      - "no"
+      - "--maxmemory"
+      - "32mb"
+      - "--maxmemory-policy"
+      - "volatile-ttl"
+      - "--user"
+      - "default"
+      - "on"
+      - ">${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}"
+      - "~demo:*"
+      - "resetchannels"
+      - "-@all"
+      - "+get"
+      - "+set"
+      - "+select"
+      - "+ping"
+      - "+ttl"
+    environment:
+      REDISCLI_AUTH: "${REDIS_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  nginx:
+    build:
+      context: ../..
+    image: nginx-redis-njs:local
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}"
+    ports:
+      - "127.0.0.1:20080:20080"
+      - "127.0.0.1:20443:20443"
+    volumes:
+      - ./etc/nginx:/etc/nginx:ro
+      - ./etc/pki/tls:/etc/pki/tls:ro
+      - ./usr/share/nginx:/usr/share/nginx:ro
+      - logs:/var/log/nginx
+    read_only: true
+    tmpfs:
+      - /run
+      - /var/cache/nginx
+    cap_drop:
+      - ALL
+    cap_add:              # the master process needs these to start workers as the nginx user
+      - CHOWN
+      - SETUID
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:20080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - frontend
+      - backend
+
+networks:
+  frontend: {}
+  backend:
+    internal: true        # Redis can reach nothing and nothing can reach Redis, except nginx
+
+volumes:
+  logs: {}                # access.log/error.log go to "docker compose logs"; per-site logs stay here

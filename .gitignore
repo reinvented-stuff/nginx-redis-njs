@@ -12,3 +12,6 @@ examples/*/var/log/nginx/*
 
 # Local copy of a production config. It contains live credentials, do not commit it.
 examples/nginx/
+
+# Local secrets for the compose example
+.env

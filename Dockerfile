@@ -43,7 +43,7 @@ RUN set -eux; \
       "${NGINX_HTTP_REDIS_SHA256}" http_redis.tar.gz \
       "${NGINX_NJS_SHA256}"        njs.tar.gz \
       | sha256sum -c -; \
-    for f in nginx redis2 http_redis njs; do tar -xzf "${f}.tar.gz"; done
+    for f in nginx redis2 http_redis njs; do tar -vxzf "${f}.tar.gz"; done
 
 WORKDIR /src/nginx-${NGINX_VERSION}
 
@@ -120,8 +120,8 @@ RUN apk add --no-cache \
  && addgroup -S -g 101 nginx \
  && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
  && mkdir -p /var/cache/nginx /var/log/nginx \
- && ln -sf /dev/stdout /var/log/nginx/access.log \
- && ln -sf /dev/stderr /var/log/nginx/error.log
+ && ln -sf /dev/stdout /var/log/nginx/stdout-access.log \
+ && ln -sf /dev/stderr /var/log/nginx/stdout-error.log
 
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=builder /usr/share/nginx/html /usr/share/nginx/html
